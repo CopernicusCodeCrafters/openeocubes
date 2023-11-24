@@ -1,3 +1,9 @@
+#### section by CopernicuSCodeCrafters
+    for publishing own version of image : 
+      docker tag openeocubes-openeocube kwundram/own_openeo:1.0
+      docker login
+      docker push kwundram/own_openeo:1.0
+
 
 # OpenEOcubes: OpenEO Compliant Lightweight R Platform for Processing Time Series Satellite Images
 
