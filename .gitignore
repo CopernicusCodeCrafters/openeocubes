@@ -40,3 +40,5 @@ vignettes/*.pdf
 
 #mac 
 .DS_Store
+
+/Rpackages
