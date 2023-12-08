@@ -1,8 +1,17 @@
-#### section by CopernicuSCodeCrafters
+## section by CopernicuSCodeCrafters
     for publishing own version of image : 
       docker tag openeocubes-openeocube kwundram/own_openeo:1.0
       docker login
       docker push kwundram/own_openeo:1.0
+
+      AWS: 
+      ssh -i C:\Users\kjell\gs23_1.pem ubuntu@ec2-35-91-217-174.us-west-2.compute.amazonaws.com
+
+      sudo docker pull kwundram/own_openeo:1.2
+      sudo docker run -p 8000:8000
+
+### Für später: start.R
+ remotes::install_github("PondiB/openeocubes", ref = "main", dependencies=TRUE, force = TRUE)
 
 
 # OpenEOcubes: OpenEO Compliant Lightweight R Platform for Processing Time Series Satellite Images

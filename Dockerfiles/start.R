@@ -1,13 +1,16 @@
-# Install package from GitHub
+# start.R
 
-# remotes::install_github("PondiB/openeocubes", ref = "main", dependencies=TRUE, force = TRUE)
+# Diese Pakete sind schon im Image :
+# installed.packages()
+ install.packages("s3")
 
 
 # Start service
 library(openeocubes)
 library(lattice)
 library(caret)
-#Aktuelles Image 1.2  start.R
+library(s3)
+#Aktuelles Image 1.2  
 
 
 
