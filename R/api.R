@@ -60,13 +60,13 @@ NULL
   return(list)
 }
 
-.conformance = function() {
+ .conformance = function() {
 
-  list = list()
-  list$conformsTo = list(Session$getConfig()$OGC_conformanceLink)
+   list = list()
+   list$conformsTo = list(Session$getConfig()$OGC_conformanceLink)
 
-  return(list)
-}
+   return(list)
+ }
 
 .collections = function() {
   tryCatch({
