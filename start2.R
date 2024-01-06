@@ -2,10 +2,10 @@
 # build and install package locally (use for development)
 install.packages("remotes", lib="/home/ubuntu/rpacks")
 library(remotes, lib.loc="/home/ubuntu/rpacks")
-remotes::install_local('./',dependencies=TRUE, force=TRUE)
+remotes::install_local('./',lib="/home/ubuntu/rpacks",dependencies=TRUE, force=TRUE)
 
 # Start service
-library(openeocubes)
+library(openeocubes,lib.loc="/home/ubuntu/rpacks")
 
 
 aws.host <-Sys.getenv("AWSHOST")
