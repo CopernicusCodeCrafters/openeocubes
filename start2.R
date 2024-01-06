@@ -1,7 +1,7 @@
 
 # build and install package locally (use for development)
 install.packages("remotes", lib="/home/ubuntu/rpacks")
-library(remotes)
+library(remotes, lib.loc="/home/ubuntu/rpacks")
 remotes::install_local('./',dependencies=TRUE, force=TRUE)
 
 # Start service
