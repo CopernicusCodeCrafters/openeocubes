@@ -1,15 +1,16 @@
 # start.R
- remotes::install_github('CopernicusCodeCrafters/openeocubes/tree/ChangeProcesses')
+# remotes::install_github('CopernicusCodeCrafters/openeocubes@ChangeProcesses')
 # Start service
 
-library(openeocubes)
+
 library(lattice)
 library(caret)
 library(s3)
+library(remotes)
 library(gdalUtilities)
 #Aktuelles Image 1.2  
-
-
+remotes::install_local("/opt/dockerfiles", dependencies = TRUE, force = TRUE)
+library(openeocubes)
 
 aws.host <-Sys.getenv("AWSHOST")
 

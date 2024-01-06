@@ -6,6 +6,7 @@
 #' @import useful
 #' @import sf
 #' @import caret
+
 NULL
 
 #' schema_format
@@ -496,39 +497,55 @@ train_model_rf <-Process$new(
   summary = "training a rf model",
   parameters = list(
     Parameter$new(
+      name = "data",
+      description = "datacube",
+      schema = list(
+        type = "object",
+        subtype = "raster-cube"
+      )
+    ),
+    Parameter$new(
       name = "samples",
       description = "training data",
       schema = list(
         type = "object",
         
-    )
-  ),
-  Parameter$new(
+      )
+    ),
+    Parameter$new(
       name = "n_tree",
       description = "number of trees",
       schema = list(
-        type = "numeric",
-        
+        type = "numeric",  
     )
-  ),
-  Parameter$new(
+    ),
+    Parameter$new(
       name = "mtry",
       description = "number of predictors selected for each tree",
       schema = list(
         type = "numeric",
-        #objtype ändern
+      )
+    ),
+    Parameter$new(
+      name = "save",
+      description = "boolean determining if the model should be saved",
+      schema = list(
+        type = "boolean",
+        
+      )
+    ),
+    Parameter$new(
+      name = "name",
+      description = "name of the model which will be used to save the model",
+      schema = list(
+        type = "String",
+      )
     )
   ),
-),
 returns=object,
-# samples: labeled training polygons
-# data   : datacube 
-# nt     : ntree
-# mt     : mtry
-# job    : job for API
 # predictors : bands which should be used for prediction
-# zusätzliche Paramter : mtry , Modell speichern 
-operation=function(data,samples,nt,mt,job){
+# zusätzliche Paramter :predictors ? 
+operation=function(data,samples,nt,mt,name,save,job){
 predictors= c("B02","B03","B04")
 #mtry <- sqrt(base::ncol(samples)
 #mtry set
@@ -536,17 +553,32 @@ mt = 2
 # ntree set : später wegmachen
 nt = 250
 tryCatch({
-      # training data as sf 
+      # training data as sf so extract_geom can work with it
+      # and harmonize CRS
       training.polygons = sf::st_read(samples, quiet = TRUE)
+      training.polygons = sf::st_transform(training.polygons, crs = gdalcubes::srs(data))
+},
+  error = function(err){
+      message(toString(err))
+      message("Error in reading training data or transforming CRS ")
+})
+tryCatch({
+  extractedData = gdalcubes::extract_geom(data, training.polygons)
+},
+  error = function(err){
+      message(toString(err))
+      message("Error in extract_geom")
+})
+#OID for merge
+training.polygons$OID = colnames(training.polygons)
 
-      # change CRS 
-      training.polygons = sf::st_transform(samples, crs = gdalcubes::srs(data))
+tryCatch({
+      training_df = merge(training.polygons, extractedData, by = "OID")
     },
-    error = function(err)
-    {
+    error = function(err){
       message(toString(err))
     })
-# data partition : creating training and testing data
+
 tryCatch({
       trainIDs = caret::createDataPartition(
       samples$label, p = 0.1, list = FALSE
@@ -554,36 +586,37 @@ tryCatch({
       trainDat <- samples[trainIDs,]
       testDat  <- samples[-trainIDs,]
     },
-    error = function(err)
-    {
+    error = function(err){
       message(toString(err))
     })
 
 tryCatch({
-  set.seed(100)
+  set.seed(123)
 
   trainControl <- caret::trainControl(method = "none", classProbs = TRUE)
 
   model <- caret::train(
               class ~ .,
               data = trainDat[,predictors],
-              # trainDat$label,
               tuneGrid = expand.grid(mtry = mt),
               trControl = trainControl,
               method= "rf",
               importance=TRUE,
-              ntree=nt) 
-
+              ntree=nt)
+},
+error = function(err){
+      message(toString(err))
 })
-
-
-
-res$model=model
-res$testDat=testDat
-return(res)
+if (save){
+      tryCatch({
+        saveRDS(model, paste0(Session$getConfig()$workspace.path, "/", model_id, ".rds"))
+      },
+      error = function(err){
+        message(toString(err))
+      })
+    }
+return(model)
 })
-
-
 
 # classify_easy
 cube_classify_1 <- Process$new(
@@ -599,25 +632,32 @@ cube_classify_1 <- Process$new(
         type = "object",
         subtype = "raster-cube"
       )
-    )
+    ),
+    Parameter$new(
+      name = "model",
+      description = "machine learning model",
+      schema = list(
+        type = "object",
+      )
+    )    
   ),
   returns=eo_datacube,
   # datacube : datacube used for classification
   # model    : trained machine learning model used for classification
   # job      : 
 
-  operation= function(datacube,model,job){
+  operation= function(data,model,aoi,crs,job){
     #reduce dimension erwartet Funktion 
     #data cube vorher reduced : muss hier nicht mehr getan werden
 
     tryCatch({
-      data <- datacube
       rfPredict <- predict(model,data)
 
     },
     error = function(err)
     {
       message(toString(err))
+      message("Error in predicting ")
     })
     
 
@@ -625,66 +665,6 @@ cube_classify_1 <- Process$new(
   }
 
 )
-
-# classify
-#  cube_classify <- Process$new(
-#   id = "cube_classify",
-#   description = "classifies a datacube after reducing dimension.",
-#   categories = as.array("cubes"),
-#   summary = "classifying using machine learning",
-#   parameters = list(
-#     Parameter$new(
-#       name = "data",
-#       description = "A data cube.",
-#       schema = list(
-#         type = "object",
-#         subtype = "raster-cube"
-#       )
-#     ),
-#    Parameter$new(
-#       name = "reducer",
-#       description = "A reducer to apply on the specified dimension.",
-#       schema = list(
-#         type = "object",
-#         subtype = "process-graph",
-#         parameters = list(
-#           Parameter$new(
-#             name = "data",
-#             description = "A labeled array with elements of any type.",
-#             schema = list(
-#               type = "array",
-#               subtype = "labeled-array",
-#               items = list(description = "Any data type")
-#             )
-#           ),
-#           Parameter$new(
-#             name = "context",
-#             description = "Additional data passed by the user.",
-#             schema = list(
-#               description = "Any data type"
-#             ),
-#             optional = TRUE
-#           )
-#         )
-#       )
-#     ),
-#     Parameter$new(
-#       name = "dimension",
-#       description = "The name of the dimension over which to reduce.",
-#       schema = list(
-#         type = "string"
-#       )
-#     ),
-#     Parameter$new(
-#       name = "context",
-#       description = "Additional data to be passed to the reducer.",
-#       schema = list(
-#         description = "Any data type"
-#       ),
-#       optional = TRUE
-#     )
-#   ),
-# )
 
 #' filter_spatial
 filter_spatial <- Process$new(
