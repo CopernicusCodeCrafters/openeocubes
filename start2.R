@@ -1,5 +1,7 @@
 
 # build and install package locally (use for development)
+install.packages("remotes")
+library(remotes)
 remotes::install_local('./',dependencies=TRUE, force=TRUE)
 
 # Start service
