@@ -9,9 +9,7 @@ FROM kwundram/own_openeo:1.6
 #RUN Rscript -e "install.packages('slider')"
 #RUN apt-get -y install libfreetype-dev
 #RUN apt-get -y install libfreetype6-dev
-#RUN Rscript -e "install.packages('warp')"
-#RUN Rscript -e "install.packages('ggplot2')"
-#RUN Rscript -e "install.packages('sits')"
+
 # install packages from local directory
 COPY ./ /opt/dockerfiles/
 #RUN Rscript -e "remotes::install_local('/opt/dockerfiles',dependencies=TRUE)"

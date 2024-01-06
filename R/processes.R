@@ -459,6 +459,35 @@ filter_bbox <- Process$new(
     return(cube)
   }
 )
+
+#fill NAS using gdalcubes
+fillNAs <-Process$New(
+  id="fillNAs",
+  description = "Fill NAs using gdalcubes to avoid",
+  categories = as.array("cubes"),
+  summary = "fill NAs ",
+  parameters=list(
+    Parameter$new(
+      name = "datacube",
+      description = "datacube with NAs",
+      schema = list(
+        type = "object"
+      )
+    )
+  ),
+  returns= eo_datacube,
+  operation = function(data,job){
+    tryCatch({
+      filledCube = gdalcubes::fill_time(data, method = "near")
+    },
+    error = function(err)
+    {
+      message(toString(err))
+    }
+    )
+    return filledCube
+  }
+)
 #train_model_rf
 train_model_rf <-Process$new(
   id="train_model_rf",
@@ -478,7 +507,7 @@ train_model_rf <-Process$new(
       name = "n_tree",
       description = "number of trees",
       schema = list(
-        type = "object",
+        type = "numeric",
         
     )
   ),
@@ -486,19 +515,20 @@ train_model_rf <-Process$new(
       name = "mtry",
       description = "number of predictors selected for each tree",
       schema = list(
-        type = "object",
+        type = "numeric",
         #objtype ändern
     )
   ),
 ),
 returns=object,
 # samples: labeled training polygons
+# data   : datacube 
 # nt     : ntree
 # mt     : mtry
-# job    :
+# job    : job for API
 # predictors : bands which should be used for prediction
 # zusätzliche Paramter : mtry , Modell speichern 
-operation=function(samples,nt,mt,job){
+operation=function(data,samples,nt,mt,job){
 predictors= c("B02","B03","B04")
 #mtry <- sqrt(base::ncol(samples)
 #mtry set
@@ -551,8 +581,7 @@ tryCatch({
 res$model=model
 res$testDat=testDat
 return(res)
-}
-)
+})
 
 
 
@@ -573,10 +602,26 @@ cube_classify_1 <- Process$new(
     )
   ),
   returns=eo_datacube,
+  # datacube : datacube used for classification
+  # model    : trained machine learning model used for classification
+  # job      : 
+
   operation= function(datacube,model,job){
     #reduce dimension erwartet Funktion 
     #data cube vorher reduced : muss hier nicht mehr getan werden
-    rfPredict <- predict(model,testData)
+
+    tryCatch({
+      data <- datacube
+      rfPredict <- predict(model,data)
+
+    },
+    error = function(err)
+    {
+      message(toString(err))
+    })
+    
+
+    
   }
 
 )

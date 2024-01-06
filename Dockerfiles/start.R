@@ -1,15 +1,11 @@
 # start.R
-# remotes::install_github('CopernicusCodeCrafters/openeocubes/tree/ChangeProcesses')
-# Diese Pakete sind schon im Image :
-# installed.packages()
-
+ remotes::install_github('CopernicusCodeCrafters/openeocubes/tree/ChangeProcesses')
 # Start service
 
 library(openeocubes)
 library(lattice)
 library(caret)
 library(s3)
-library(sits)
 library(gdalUtilities)
 #Aktuelles Image 1.2  
 
