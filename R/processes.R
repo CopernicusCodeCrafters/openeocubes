@@ -486,7 +486,7 @@ fillNAs <-Process$New(
       message(toString(err))
     }
     )
-    return filledCube
+    return (filledCube)
   }
 )
 #train_model_rf
@@ -661,7 +661,7 @@ cube_classify_1 <- Process$new(
     })
     
 
-    
+    return(rfPredict)
   }
 
 )
@@ -1150,7 +1150,7 @@ run_udf <- Process$new(
     # NB : more reducer keywords can be added
     message("run UDF called")
     reducer_keywords = c("sum","bfast","sd", "mean", "median", "min","reduce","product", "max", "count", "var")
-    if !("cube" %in% class(data)) {
+    if (!("cube" %in% class(data))) {
       stop('Provided cube is not of class "cube"')
     }
 

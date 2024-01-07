@@ -12,7 +12,8 @@ FROM kwundram/own_openeo:1.6
 
 # install packages from local directory
 COPY ./ /opt/dockerfiles/
-#RUN Rscript -e "remotes::install_local('/opt/dockerfiles',dependencies=TRUE)"
+RUN Rscript -e "remove.packages('openeocubes')"
+RUN Rscript -e "remotes::install_local('/opt/dockerfiles',dependencies=TRUE)"
 #RUN Rscript -e "remotes::install_github('CopernicusCodeCrafters/openeocubes@ChangeProcesses',dependencies=TRUE, force = TRUE)"
 # RUN Rscript -e "remotes::install_github('PondiB/openeocubes', ref = 'main', dependencies=TRUE, force = TRUE)"
 # cmd or entrypoint for startup
