@@ -3,7 +3,7 @@
 #install.packages("remotes", repos = "http://cran.us.r-project.org")#, lib="/home/ubuntu/rpacks")
 install.packages("devtools", repos = "http://cran.us.r-project.org",lib =.libPaths()[1])
 
-l#ibrary(remotes, lib.loc=.libPaths()[3])#, lib.loc="/home/ubuntu/rpacks")
+#ibrary(remotes, lib.loc=.libPaths()[3])#, lib.loc="/home/ubuntu/rpacks")
 library(devtools,lib.loc=.libPaths()[1])
 #install.packages("renv",repos = "http://cran.us.r-project.org")
 #library(renv)
