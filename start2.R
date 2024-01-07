@@ -1,19 +1,19 @@
 
 # build and install package locally (use for development)
 #install.packages("remotes", repos = "http://cran.us.r-project.org")#, lib="/home/ubuntu/rpacks")
-install.packages("devtools", repos = "http://cran.us.r-project.org",lib =.libPaths()[3])
+install.packages("devtools", repos = "http://cran.us.r-project.org",lib =.libPaths()[1])
 
 l#ibrary(remotes, lib.loc=.libPaths()[3])#, lib.loc="/home/ubuntu/rpacks")
-library(devtools,lib.loc=.libPaths()[3])
+library(devtools,lib.loc=.libPaths()[1])
 #install.packages("renv",repos = "http://cran.us.r-project.org")
 #library(renv)
 
 
 #remove.packages("openeocubes")
 #remotes::install_local('./',dependencies=TRUE, force=TRUE,lib="D:/rpacks")#,lib="/home/ubuntu/rpacks",dependencies=TRUE, force=TRUE)
-devtools::install_local('./',dependencies=TRUE, force=TRUE, lib=.libPaths()[3])
+devtools::install_local('./',dependencies=TRUE, force=TRUE, lib=.libPaths()[1])
 # Start service
-library(openeocubes,lib.loc=.libPaths()[3])#,lib.loc="/home/ubuntu/rpacks")
+library(openeocubes,lib.loc=.libPaths()[1])#,lib.loc="/home/ubuntu/rpacks")
 
 
 aws.host <-Sys.getenv("AWSHOST")
