@@ -1108,14 +1108,6 @@ run_udf <- Process$new(
       )
     ),
     Parameter$new(
-      name = "names",
-      description = "List of names to define outputs from a reducer UDF",
-      schema = list(
-        type = "string",
-        subtype = "string"
-      )
-    ),
-    Parameter$new(
       name = "runtime",
       description = "A UDF runtime identifier available at the back-end.",
       schema = list(
@@ -1142,43 +1134,43 @@ run_udf <- Process$new(
     description = "The computed result.",
     schema = list(type = c("number", "null"))
   ),
-  operation = function(data, udf, names = c("default"), runtime = "R", version = NULL,  context = NULL, job){
-
-    if (runtime != "R"){
+  operation = function(data, udf, runtime = "R", version = NULL, context = NULL, job) {
+    if (runtime != "R") {
       stop("Only R runtime is supported.")
     }
     # NB : more reducer keywords can be added
     message("run UDF called")
-    reducer_keywords = c("sum","bfast","sd", "mean", "median", "min","reduce","product", "max", "count", "var")
+    reducer_keywords <- c("sum", "bfast", "sd", "mean", "median", "min", "reduce", "product", "max", "count", "var")
     if (!("cube" %in% class(data))) {
       stop('Provided cube is not of class "cube"')
     }
 
-    if(grepl("function", udf)){
-      if(any(sapply(reducer_keywords, grepl, udf))){
+    if (grepl("function", udf)) {
+      if (any(sapply(reducer_keywords, grepl, udf))) {
         # convert parsed string function to class function
         func_parse <- parse(text = udf)
         user_function <- eval(func_parse)
         # reducer udf
         message("reducer function -> time")
-        data <- reduce_time(data, names = names, FUN = user_function)
-        return (data)
-      }else{
+        data <- reduce_time(data, names = context, FUN = user_function)
+        return(data)
+      } else {
         # convert parsed string function to class function
         message("apply per pixel function")
         func_parse <- parse(text = udf)
         user_function <- eval(func_parse)
         # apply per pixel udf
         data <- apply_pixel(data, FUN = user_function)
-        return (data)
+        return(data)
       }
-    }else{
+    } else {
       message("simple reducer udf")
       data <- reduce_time(data, udf)
-      return (data)
-    }   
+      return(data)
+    }
   }
 )
+
 
 
 #' save result

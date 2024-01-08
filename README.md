@@ -17,16 +17,8 @@
 ### Für später: start.R
  remotes::install_github("PondiB/openeocubes", ref = "main", dependencies=TRUE, force = TRUE)
   
-sysfonts’, ‘showtextdb’ are not available for package ‘showtext’
-
-
-sind drin:
-openeocubes
-caret
-s3
-gdalUtilities
-sits
-terra
+### Local start
+export R_LIBS_USER=/home/ubuntu/rpacks
 
 # OpenEOcubes: OpenEO Compliant Lightweight R Platform for Processing Time Series Satellite Images
 
