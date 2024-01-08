@@ -490,133 +490,133 @@ fillNAs <-Process$New(
   }
 )
 #train_model_rf
-train_model_rf <-Process$new(
-  id="train_model_rf",
-  description = "train random forest model.",
-  categories = as.array("cubes"),
-  summary = "training a rf model",
-  parameters = list(
-    Parameter$new(
-      name = "data",
-      description = "datacube",
-      schema = list(
-        type = "object",
-        subtype = "raster-cube"
-      )
-    ),
-    Parameter$new(
-      name = "samples",
-      description = "training data",
-      schema = list(
-        type = "object",
+# train_model_rf <-Process$new(
+#   id="train_model_rf",
+#   description = "train random forest model.",
+#   categories = as.array("cubes"),
+#   summary = "training a rf model",
+#   parameters = list(
+#     Parameter$new(
+#       name = "data",
+#       description = "datacube",
+#       schema = list(
+#         type = "object",
+#         subtype = "raster-cube"
+#       )
+#     ),
+#     Parameter$new(
+#       name = "samples",
+#       description = "training data",
+#       schema = list(
+#         type = "object",
         
-      )
-    ),
-    Parameter$new(
-      name = "n_tree",
-      description = "number of trees",
-      schema = list(
-        type = "numeric",  
-    )
-    ),
-    Parameter$new(
-      name = "mtry",
-      description = "number of predictors selected for each tree",
-      schema = list(
-        type = "numeric",
-      )
-    ),
-    Parameter$new(
-      name = "save",
-      description = "boolean determining if the model should be saved",
-      schema = list(
-        type = "boolean",
+#       )
+#     ),
+#     Parameter$new(
+#       name = "n_tree",
+#       description = "number of trees",
+#       schema = list(
+#         type = "numeric",  
+#     )
+#     ),
+#     Parameter$new(
+#       name = "mtry",
+#       description = "number of predictors selected for each tree",
+#       schema = list(
+#         type = "numeric",
+#       )
+#     ),
+#     Parameter$new(
+#       name = "save",
+#       description = "boolean determining if the model should be saved",
+#       schema = list(
+#         type = "boolean",
         
-      )
-    ),
-    Parameter$new(
-      name = "name",
-      description = "name of the model which will be used to save the model",
-      schema = list(
-        type = "String",
-      )
-    )
-  ),
-returns=object,
-# predictors : bands which should be used for prediction
-# zusätzliche Paramter :predictors ? 
-operation=function(data,samples,nt,mt,name,save,job){
-predictors= c("B02","B03","B04")
-#mtry <- sqrt(base::ncol(samples)
-#mtry set
-mt = 2
-# ntree set : später wegmachen
-nt = 250
-tryCatch({
-      # training data as sf so extract_geom can work with it
-      # and harmonize CRS
-      training.polygons = sf::st_read(samples, quiet = TRUE)
-      training.polygons = sf::st_transform(training.polygons, crs = gdalcubes::srs(data))
-},
-  error = function(err){
-      message(toString(err))
-      message("Error in reading training data or transforming CRS ")
-})
-tryCatch({
-  extractedData = gdalcubes::extract_geom(data, training.polygons)
-},
-  error = function(err){
-      message(toString(err))
-      message("Error in extract_geom")
-})
-#OID for merge
-training.polygons$OID = colnames(training.polygons)
+#       )
+#     ),
+#     Parameter$new(
+#       name = "name",
+#       description = "name of the model which will be used to save the model",
+#       schema = list(
+#         type = "String",
+#       )
+#     )
+#   ),
+# returns=object,
+# # predictors : bands which should be used for prediction
+# # zusätzliche Paramter :predictors ? 
+# operation=function(data,samples,nt,mt,name,save,job){
+# predictors= c("B02","B03","B04")
+# #mtry <- sqrt(base::ncol(samples)
+# #mtry set
+# mt = 2
+# # ntree set : später wegmachen
+# nt = 250
+# tryCatch({
+#       # training data as sf so extract_geom can work with it
+#       # and harmonize CRS
+#       training.polygons = sf::st_read(samples, quiet = TRUE)
+#       training.polygons = sf::st_transform(training.polygons, crs = gdalcubes::srs(data))
+# },
+#   error = function(err){
+#       message(toString(err))
+#       message("Error in reading training data or transforming CRS ")
+# })
+# tryCatch({
+#   extractedData = gdalcubes::extract_geom(data, training.polygons)
+# },
+#   error = function(err){
+#       message(toString(err))
+#       message("Error in extract_geom")
+# })
+# #OID for merge
+# training.polygons$OID = colnames(training.polygons)
 
-tryCatch({
-      training_df = merge(training.polygons, extractedData, by = "OID")
-    },
-    error = function(err){
-      message(toString(err))
-    })
+# tryCatch({
+#       training_df = merge(training.polygons, extractedData, by = "OID")
+#     },
+#     error = function(err){
+#       message(toString(err))
+#     })
 
-tryCatch({
-      trainIDs = caret::createDataPartition(
-      samples$label, p = 0.1, list = FALSE
-      )
-      trainDat <- samples[trainIDs,]
-      testDat  <- samples[-trainIDs,]
-    },
-    error = function(err){
-      message(toString(err))
-    })
+# tryCatch({
+#       trainIDs = caret::createDataPartition(
+#       samples$label, p = 0.1, list = FALSE
+#       )
+#       trainDat <- samples[trainIDs,]
+#       testDat  <- samples[-trainIDs,]
+#     },
+#     error = function(err){
+#       message(toString(err))
+#     })
 
-tryCatch({
-  set.seed(123)
+# tryCatch({
+#   set.seed(123)
 
-  trainControl <- caret::trainControl(method = "none", classProbs = TRUE)
+#   trainControl <- caret::trainControl(method = "none", classProbs = TRUE)
 
-  model <- caret::train(
-              class ~ .,
-              data = trainDat[,predictors],
-              tuneGrid = expand.grid(mtry = mt),
-              trControl = trainControl,
-              method= "rf",
-              importance=TRUE,
-              ntree=nt)
-},
-error = function(err){
-      message(toString(err))
-})
-if (save){
-      tryCatch({
-        saveRDS(model, paste0(Session$getConfig()$workspace.path, "/", model_id, ".rds"))
-      },
-      error = function(err){
-        message(toString(err))
-      })
-    }
-return(model)
-})
+#   model <- caret::train(
+#               class ~ .,
+#               data = trainDat[,predictors],
+#               tuneGrid = expand.grid(mtry = mt),
+#               trControl = trainControl,
+#               method= "rf",
+#               importance=TRUE,
+#               ntree=nt)
+# },
+# error = function(err){
+#       message(toString(err))
+# })
+# if (save){
+#       tryCatch({
+#         saveRDS(model, paste0(Session$getConfig()$workspace.path, "/", model_id, ".rds"))
+#       },
+#       error = function(err){
+#         message(toString(err))
+#       })
+#     }
+# return(model)
+# })
 
 # classify_easy
 # cube_classify_1 <- Process$new(
