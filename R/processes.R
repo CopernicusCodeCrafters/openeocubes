@@ -6,7 +6,6 @@
 #' @import useful
 #' @import sf
 #' @import caret
-
 NULL
 
 #' schema_format
@@ -17,6 +16,7 @@ NULL
 #'
 #' @return list with type and subtype(optional)
 #' @export
+#
 schema_format <- function(type, subtype = NULL, items = NULL) {
   schema <- list()
   schema <- append(schema, list(type = type))
@@ -45,6 +45,184 @@ datacube_schema <- function() {
 
 #' return object for the processes
 eo_datacube <- datacube_schema()
+
+#train_model_rf
+# train_model_rf <-Process$new(
+#   id="train_model_rf",
+#   description = "train random forest model.",
+#   categories = as.array("cubes"),
+#   summary = "training a rf model",
+#   parameters = list(
+#     Parameter$new(
+#       name = "data",
+#       description = "datacube",
+#       schema = list(
+#         type = "object",
+#         subtype = "raster-cube"
+#       )
+#     ),
+#     Parameter$new(
+#       name = "samples",
+#       description = "training data",
+#       schema = list(
+#         type = "object",
+        
+#       )
+#     ),
+#     Parameter$new(
+#       name = "n_tree",
+#       description = "number of trees",
+#       schema = list(
+#         type = "numeric",  
+#       )
+#     ),
+#     Parameter$new(
+#       name = "mtry",
+#       description = "number of predictors selected for each tree",
+#       schema = list(
+#         type = "numeric",
+#       )
+#     ),
+#     Parameter$new(
+#       name = "save",
+#       description = "boolean determining if the model should be saved",
+#       schema = list(
+#         type = "boolean",
+        
+#       )
+#     ),
+#     Parameter$new(
+#       name = "name",
+#       description = "name of the model which will be used to save the model",
+#       schema = list(
+#         type = "String",
+#       )
+#     )
+#   ),
+#   returns=object,
+#   # predictors : bands which should be used for prediction
+#   # zusätzliche Paramter :predictors ? 
+#   operation=function(data,samples,nt,mt,name,save,job){
+#     predictors= c("B02","B03","B04")
+#     #mtry <- sqrt(base::ncol(samples)
+#     #mtry set
+#     mt = 2
+#     # ntree set : später wegmachen
+#     nt = 250
+#     tryCatch({
+#       # training data as sf so extract_geom can work with it
+#       # and harmonize CRS
+#       training.polygons = sf::st_read(samples, quiet = TRUE)
+#       training.polygons = sf::st_transform(training.polygons, crs = gdalcubes::srs(data))
+#     },
+#     error = function(err){
+#       message(toString(err))
+#       message("Error in reading training data or transforming CRS ")
+#     })
+#     tryCatch({
+#       extractedData = gdalcubes::extract_geom(data, training.polygons)
+#     },
+#     error = function(err){
+#       message(toString(err))
+#       message("Error in extract_geom")
+#     })
+#     #OID for merge
+#     training.polygons$OID = colnames(training.polygons)
+    
+#     tryCatch({
+#       training_df = merge(training.polygons, extractedData, by = "OID")
+#     },
+#     error = function(err){
+#       message(toString(err))
+#     })
+    
+#     tryCatch({
+#       trainIDs = caret::createDataPartition(
+#         samples$label, p = 0.1, list = FALSE
+#       )
+#       trainDat <- samples[trainIDs,]
+#       testDat  <- samples[-trainIDs,]
+#     },
+#     error = function(err){
+#       message(toString(err))
+#     })
+    
+#     tryCatch({
+#       set.seed(123)
+      
+#       trainControl <- caret::trainControl(method = "none", classProbs = TRUE)
+      
+#       model <- caret::train(
+#         class ~ .,
+#         data = trainDat[,predictors],
+#         tuneGrid = expand.grid(mtry = mt),
+#         trControl = trainControl,
+#         method= "rf",
+#         importance=TRUE,
+#         ntree=nt)
+#     },
+#     error = function(err){
+#       message(toString(err))
+#     })
+#     if (save){
+#       tryCatch({
+#         saveRDS(model, paste0(Session$getConfig()$workspace.path, "/", model_id, ".rds"))
+#       },
+#       error = function(err){
+#         message(toString(err))
+#       })
+#     }
+#     return(model)
+#   })
+
+
+# classify_easy
+# cube_classify_1 <- Process$new(
+#   id = "cube_classify_1",
+#   description = "classifies a datacube after reducing dimension.",
+#   categories = as.array("cubes"),
+#   summary = "classifying using rf machine learning model",
+#   parameters = list(
+#     Parameter$new(
+#       name = "data",
+#       description = "A data cube.",
+#       schema = list(
+#         type = "object",
+#         subtype = "raster-cube"
+#       )
+#     ),
+#     Parameter$new(
+#       name = "model",
+#       description = "machine learning model",
+#       schema = list(
+#         type = "object",
+#       )
+#     )    
+#   ),
+#   returns=eo_datacube,
+#   # datacube : datacube used for classification
+#   # model    : trained machine learning model used for classification
+#   # job      : 
+  
+#   operation= function(data,model,aoi,crs,job){
+#     #reduce dimension erwartet Funktion 
+#     #data cube vorher reduced : muss hier nicht mehr getan werden
+    
+#     tryCatch({
+#       rfPredict <- predict(model,data)
+      
+#     },
+#     error = function(err)
+#     {
+#       message(toString(err))
+#       message("Error in predicting ")
+#     })
+    
+    
+    
+#   }
+  
+# )
 
 
 #' load collection
@@ -103,6 +281,15 @@ load_collection <- Process$new(
       )
     ),
     Parameter$new(
+      name = "crs",
+      description = "Coordinate Reference System, default = 4326",
+      schema = list(
+        type = "number",
+        subtype = "epsg-code"
+      ),
+      optional = TRUE
+    ),
+    Parameter$new(
       name = "temporal_extent",
       description = "Limits the data to load from the collection to the specified left-closed temporal interval.",
       schema = list(
@@ -117,39 +304,11 @@ load_collection <- Process$new(
         type = "array"
       ),
       optional = TRUE
-    ),
-    ### Additional variables for flexibility due to gdalcubes
-    Parameter$new(
-      name = "pixels_size",
-      description = "size of pixels in x-direction(longitude / easting) and y-direction (latitude / northing). Default is 300",
-      schema = list(
-        type = "number"
-      ),
-      optional = TRUE
-    ),
-    Parameter$new(
-      name = "time_aggregation",
-      description = "size of pixels in time-direction, expressed as ISO8601 period string (only 1 number and unit is allowed) such as \"P16D\".Default is monthly i.e. \"P1M\".",
-      schema = list(
-        type = "string",
-        subtype = "duration"
-      ),
-      optional = TRUE
-    ),
-    Parameter$new(
-      name = "crs",
-      description = "Coordinate Reference System, default = 4326",
-      schema = list(
-        type = "number",
-        subtype = "epsg-code"
-      ),
-      optional = TRUE
     )
   ),
   returns = eo_datacube,
-  operation = function(id, spatial_extent, temporal_extent, bands = NULL, pixels_size = 300, time_aggregation = "P1M",
-                       crs = 4326, job) {
-    # Temporal extent preprocess
+  operation = function(id, spatial_extent, crs = 4326, temporal_extent, bands = NULL, job) {
+    # temporal extent preprocess
     t0 <- temporal_extent[[1]]
     t1 <- temporal_extent[[2]]
     duration <- c(t0, t1)
@@ -163,12 +322,13 @@ load_collection <- Process$new(
     ymax <- as.numeric(spatial_extent$north)
     message("...After Spatial extent")
 
-    # spatial extent for stac API call
+    # spatial extent for STAC API call
     xmin_stac <- xmin
     ymin_stac <- ymin
     xmax_stac <- xmax
     ymax_stac <- ymax
-    message("....After default Spatial extent for stac")
+    message("....After default Spatial extent for STAC")
+
     if (crs != 4326) {
       message("....crs is not 4326")
       min_pt <- sf::st_sfc(st_point(c(xmin, ymin)), crs = crs)
@@ -181,10 +341,11 @@ load_collection <- Process$new(
       max_bbx <- sf::st_bbox(max_pt)
       xmax_stac <- max_bbx$xmax
       ymax_stac <- max_bbx$ymax
+
       message("....transformed to 4326")
     }
 
-    # Connect to STAC API using rstac and get satellite data
+    # connect to STAC API using rstac and get satellite data
     message("STAC API call.....")
     stac_object <- rstac::stac("https://earth-search.aws.element84.com/v0")
     items <- stac_object %>%
@@ -196,18 +357,20 @@ load_collection <- Process$new(
       ) %>%
       post_request() %>%
       items_fetch()
-    # create image collection from stac items features
+
+    # create image collection from STAC items features
     img.col <- gdalcubes::stac_image_collection(items$features,
-      property_filter =
-        function(x) {
-          x[["eo:cloud_cover"]] < 30
-        }
+                                                property_filter =
+                                                  function(x) {
+                                                    x[["eo:cloud_cover"]] < 30
+                                                  }
     )
-    # Define cube view with monthly aggregation
+
+    # Define cube view with bi weekly aggregation
     crs <- c("EPSG", crs)
     crs <- paste(crs, collapse = ":")
     v.overview <- gdalcubes::cube_view(
-      srs = crs, dx = pixels_size, dy = pixels_size, dt = time_aggregation,
+      srs = crs, dx = 30, dy = 30, dt = "P15D",
       aggregation = "median", resampling = "average",
       extent = list(
         t0 = t0, t1 = t1,
@@ -215,13 +378,15 @@ load_collection <- Process$new(
         top = ymax, bottom = ymin
       )
     )
-    # gdalcubes creation
+
+    # data cube creation
     cube <- gdalcubes::raster_cube(img.col, v.overview)
 
     if (!is.null(bands)) {
       cube <- gdalcubes::select_bands(cube, bands)
     }
-    message("Data Cube is created....")
+
+    message("The data cube is created....")
     message(gdalcubes::as_json(cube))
     return(cube)
   }
@@ -309,11 +474,9 @@ load_stac <- Process$new(
   ),
   returns = eo_datacube,
   operation = function(url, spatial_extent, temporal_extent, bands = NULL, properties = NULL, job) {
-    # Temporal extent preprocess
-    t0 <- temporal_extent[[1]]
-    t1 <- temporal_extent[[2]]
-    duration <- c(t0, t1)
-    time_range <- paste(duration, collapse = "/")
+
+    # temporal extent preprocess
+    duration <- paste(temporal_extent[[1]], temporal_extent[[2]], collapse = "/")
 
     # spatial extent for cube view
     xmin <- as.numeric(spatial_extent$west)
@@ -321,49 +484,118 @@ load_stac <- Process$new(
     xmax <- as.numeric(spatial_extent$east)
     ymax <- as.numeric(spatial_extent$north)
 
-    # get stac catalog metadata
-    stacmetadata <- rstac::stac(url) %>%
+    # get STAC catalog metadata
+    stac_metadata <- rstac::stac(url) %>%
       rstac::get_request()
 
-    stac_base_url <- stacmetadata$links[[4]]$href
-    id <- stacmetadata$id
+    stac_base_url <- stac_metadata$links[[4]]$href
+    id <- stac_metadata$id
 
-    # Connect to STAC API using rstac and get satellite data
+    # connect to STAC API using rstac and get satellite data
     stac_object <- rstac::stac(stac_base_url)
     items <- stac_object %>%
       rstac::stac_search(
         collections = id,
         bbox = c(xmin, ymin, xmax, ymax),
-        datetime = time_range,
+        datetime = duration,
         limit = 10000
       ) %>%
       rstac::post_request() %>%
       rstac::items_fetch()
 
-    # create image collection from stac items features # , property_filter =function(x) {x[["eo:cloud_cover"]] < 30}
-    img.col <- gdalcubes::stac_image_collection(items$features)
+    # create image collection from STAC items features
+    img_col <- gdalcubes::stac_image_collection(items$features)
 
-    # Define cube view with monthly aggregation
-    v.overview <- gdalcubes::cube_view(
+    # define cube view with monthly aggregation
+    cube_view <- gdalcubes::cube_view(
       srs = "EPSG:4326", dx = 30, dy = 30, dt = "P1M",
       aggregation = "median", resampling = "average",
       extent = list(
-        t0 = t0, t1 = t1,
+        t0 = temporal_extent[[1]], t1 = temporal_extent[[2]],
         left = xmin, right = xmax,
         top = ymax, bottom = ymin
       )
     )
-    # gdalcubes creation
-    cube <- gdalcubes::raster_cube(img.col, v.overview)
+
+    # create data cube
+    cube <- gdalcubes::raster_cube(img_col, cube_view)
 
     if (!is.null(bands)) {
       cube <- gdalcubes::select_bands(cube, bands)
     }
+
     message(gdalcubes::as_json(cube))
     return(cube)
   }
 )
 
+#' aggregate temporal period
+aggregate_temporal_period <- Process$new(
+  id = "aggregate_temporal_period",
+  description = "Computes a temporal aggregation based on calendar hierarchies such as years, months or seasons.",
+  categories = as.array("aggregate", "cubes", "climatology"),
+  summary = "Temporal aggregations based on calendar hierarchies",
+  parameters = list(
+    Parameter$new(
+      name = "data",
+      description = "The source data cube.",
+      schema = list(
+        type = "object",
+        subtype = "raster-cube"
+      )
+    ),
+    Parameter$new(
+      name = "period",
+      description = "The time intervals to aggregate",
+      schema = list(
+        type = "string"
+      ),
+      optional = FALSE
+    ),
+    Parameter$new(
+      name = "reducer",
+      description = "A reducer to be applied for the values contained in each interval. A reducer is a single process such as mean or a set of processes, which computes a single value for a list of values",
+      schema = list(
+        type = "any"
+      ),
+      optional = FALSE
+    ),
+    Parameter$new(
+      name = "dimension",
+      description = "The name of the temporal dimension for aggregation",
+      schema = list(
+        type = "any"
+      ),
+      optional = TRUE
+    ),
+    Parameter$new(
+      name = "context",
+      description = "Additional data to be passed to the reducer",
+      schema = list(
+        type = "any"
+      ),
+      optional = TRUE
+    )
+  ),
+  returns = eo_datacube,
+  operation = function(data, period, reducer, dimension = NULL, context = NULL, job) {
+    dt_period <- switch(period,
+      week = "P7D",
+      dekad = "P10D",
+      month = "P1M",
+      year = "P1Y",
+      decade = "P10Y",
+      stop("The specified period is not supported")
+    )
+
+    message("Aggregate temporal period ...")
+    message("Aggregate temporal period:", dt_period, "using reducer:", reducer)
+
+    cube <- gdalcubes::aggregate_time(cube = data, dt = dt_period, method = reducer)
+    message(gdalcubes::as_json(cube))
+    return(cube)
+  }
+)
 
 #' filter bands
 filter_bands <- Process$new(
@@ -461,210 +693,6 @@ filter_bbox <- Process$new(
   }
 )
 
-#fill NAS using gdalcubes
-fillNAs <-Process$New(
-  id="fillNAs",
-  description = "Fill NAs using gdalcubes to avoid",
-  categories = as.array("cubes"),
-  summary = "fill NAs ",
-  parameters=list(
-    Parameter$new(
-      name = "datacube",
-      description = "datacube with NAs",
-      schema = list(
-        type = "object"
-      )
-    )
-  ),
-  returns= eo_datacube,
-  operation = function(data,job){
-    tryCatch({
-      filledCube = gdalcubes::fill_time(data, method = "near")
-    },
-    error = function(err)
-    {
-      message(toString(err))
-    }
-    )
-    return (filledCube)
-  }
-)
-#train_model_rf
-# train_model_rf <-Process$new(
-#   id="train_model_rf",
-#   description = "train random forest model.",
-#   categories = as.array("cubes"),
-#   summary = "training a rf model",
-#   parameters = list(
-#     Parameter$new(
-#       name = "data",
-#       description = "datacube",
-#       schema = list(
-#         type = "object",
-#         subtype = "raster-cube"
-#       )
-#     ),
-#     Parameter$new(
-#       name = "samples",
-#       description = "training data",
-#       schema = list(
-#         type = "object",
-        
-#       )
-#     ),
-#     Parameter$new(
-#       name = "n_tree",
-#       description = "number of trees",
-#       schema = list(
-#         type = "numeric",  
-#     )
-#     ),
-#     Parameter$new(
-#       name = "mtry",
-#       description = "number of predictors selected for each tree",
-#       schema = list(
-#         type = "numeric",
-#       )
-#     ),
-#     Parameter$new(
-#       name = "save",
-#       description = "boolean determining if the model should be saved",
-#       schema = list(
-#         type = "boolean",
-        
-#       )
-#     ),
-#     Parameter$new(
-#       name = "name",
-#       description = "name of the model which will be used to save the model",
-#       schema = list(
-#         type = "String",
-#       )
-#     )
-#   ),
-# returns=object,
-# # predictors : bands which should be used for prediction
-# # zusätzliche Paramter :predictors ? 
-# operation=function(data,samples,nt,mt,name,save,job){
-# predictors= c("B02","B03","B04")
-# #mtry <- sqrt(base::ncol(samples)
-# #mtry set
-# mt = 2
-# # ntree set : später wegmachen
-# nt = 250
-# tryCatch({
-#       # training data as sf so extract_geom can work with it
-#       # and harmonize CRS
-#       training.polygons = sf::st_read(samples, quiet = TRUE)
-#       training.polygons = sf::st_transform(training.polygons, crs = gdalcubes::srs(data))
-# },
-#   error = function(err){
-#       message(toString(err))
-#       message("Error in reading training data or transforming CRS ")
-# })
-# tryCatch({
-#   extractedData = gdalcubes::extract_geom(data, training.polygons)
-# },
-#   error = function(err){
-#       message(toString(err))
-#       message("Error in extract_geom")
-# })
-# #OID for merge
-# training.polygons$OID = colnames(training.polygons)
-
-# tryCatch({
-#       training_df = merge(training.polygons, extractedData, by = "OID")
-#     },
-#     error = function(err){
-#       message(toString(err))
-#     })
-
-# tryCatch({
-#       trainIDs = caret::createDataPartition(
-#       samples$label, p = 0.1, list = FALSE
-#       )
-#       trainDat <- samples[trainIDs,]
-#       testDat  <- samples[-trainIDs,]
-#     },
-#     error = function(err){
-#       message(toString(err))
-#     })
-
-# tryCatch({
-#   set.seed(123)
-
-#   trainControl <- caret::trainControl(method = "none", classProbs = TRUE)
-
-#   model <- caret::train(
-#               class ~ .,
-#               data = trainDat[,predictors],
-#               tuneGrid = expand.grid(mtry = mt),
-#               trControl = trainControl,
-#               method= "rf",
-#               importance=TRUE,
-#               ntree=nt)
-# },
-# error = function(err){
-#       message(toString(err))
-# })
-# if (save){
-#       tryCatch({
-#         saveRDS(model, paste0(Session$getConfig()$workspace.path, "/", model_id, ".rds"))
-#       },
-#       error = function(err){
-#         message(toString(err))
-#       })
-#     }
-# return(model)
-# })
-
-# classify_easy
-# cube_classify_1 <- Process$new(
-#   id = "cube_classify_1",
-#   description = "classifies a datacube after reducing dimension.",
-#   categories = as.array("cubes"),
-#   summary = "classifying using rf machine learning model",
-#   parameters = list(
-#     Parameter$new(
-#       name = "data",
-#       description = "A data cube.",
-#       schema = list(
-#         type = "object",
-#         subtype = "raster-cube"
-#       )
-#     ),
-#     Parameter$new(
-#       name = "model",
-#       description = "machine learning model",
-#       schema = list(
-#         type = "object",
-#       )
-#     )    
-#   ),
-#   returns=eo_datacube,
-#   # datacube : datacube used for classification
-#   # model    : trained machine learning model used for classification
-#   # job      : 
-
-#   operation= function(data,model,aoi,crs,job){
-#     #reduce dimension erwartet Funktion 
-#     #data cube vorher reduced : muss hier nicht mehr getan werden
-
-#     tryCatch({
-#       rfPredict <- predict(model,data)
-
-#     },
-#     error = function(err)
-#     {
-#       message(toString(err))
-#       message("Error in predicting ")
-#     })
-    
-
-#     return(rfPredict)
-#   }
-# )
-
 #' filter_spatial
 filter_spatial <- Process$new(
   id = "filter_spatial",
@@ -692,11 +720,11 @@ filter_spatial <- Process$new(
   returns = eo_datacube,
   operation = function(data, geometries, job) {
     # read geojson url and convert to geometry
-    geo.data <- sf::read_sf(geometries)
-    geo.data <- geo.data$geometry
-    geo.data <- sf::st_transform(geo.data, 3857)
+    geo_data <- sf::read_sf(geometries)
+    geo_data <- geo_data$geometry
+    geo_data <- sf::st_transform(geo_data, 3857)
     # filter using geom
-    cube <- gdalcubes::filter_geom(data_cube, geo.data)
+    cube <- gdalcubes::filter_geom(data_cube, geo_data)
     return(cube)
   }
 )
@@ -919,6 +947,81 @@ reduce_dimension <- Process$new(
     }
   }
 )
+
+#' resample spatial
+resample_spatial <- Process$new(
+  id = "resample_spatial",
+  description = "Resamples the spatial dimensions (x,y) of the data cube to a specified resolution and/or warps the data cube to the target projection. At least resolution or projection must be specified.",
+  categories = as.array("aggregate", "cubes", "climatology"),
+  summary = "Resample and warp the spatial dimensions",
+  parameters = list(
+    Parameter$new(
+      name = "data",
+      description = "A raster data cube.",
+      schema = list(
+        type = "object",
+        subtype = "raster-cube"
+      )
+    ),
+    Parameter$new(
+      name = "resolution",
+      description = "Resamples the data cube to the target resolution, which can be specified either as separate values for x and y or as a single value for both axes. Specified in the units of the target projection. Doesn't change the resolution by default (0).",
+      schema = list(
+        type = list( "number","array")
+      ),
+      optional = TRUE
+    ),
+    Parameter$new(
+      name = "projection",
+      description = "Warps the data cube to the target projection, specified as as EPSG code or WKT2 CRS string. By default (null), the projection is not changed",
+      schema = list(
+        type = "integer"
+      ),
+      optional = TRUE
+    ),
+    Parameter$new(
+      name = "method",
+      description = "Resampling method to use",
+      schema = list(
+        type = "string"
+      ),
+      optional = TRUE
+    ),
+    Parameter$new(
+      name = "align",
+      description = "Specifies to which corner of the spatial extent the new resampled data is aligned to",
+      schema = list(
+        type = "string"
+      ),
+      optional = TRUE
+    )
+  ),
+  returns = eo_datacube,
+  operation = function(data, resolution = 0, projection = NULL, method = "mean", align = "upper-left", job) {
+    if (resolution == 0 && is.null(projection)) {
+      stop("At least resolution or projection must be specified.")
+    }
+
+    valid_methods <- c("mean", "min", "max", "median", "count", "sum", "prod", "var", "sd")
+    if (!(method %in% valid_methods)) {
+      stop(paste("Invalid method. Please choose one of", toString(valid_methods)))
+    }
+
+    if (!is.null(projection)) {
+      stop("Currently, only resampling spatial resolution is implemented.")
+    }
+
+    cube <- if (resolution != 0) {
+      gdalcubes::aggregate_space(cube = data, dx = resolution, dy = resolution, method = method)
+    } else {
+      stop("Currently, only resampling spatial resolution is implemented.")
+    }
+
+    message(gdalcubes::as_json(cube))
+    return(cube)
+  }
+)
+
 
 #' merge_cubes
 merge_cubes <- Process$new(
@@ -1169,7 +1272,6 @@ run_udf <- Process$new(
     }
   }
 )
-
 
 
 #' save result
