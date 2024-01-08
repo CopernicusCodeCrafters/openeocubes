@@ -619,52 +619,51 @@ return(model)
 })
 
 # classify_easy
-cube_classify_1 <- Process$new(
-  id = "cube_classify_1",
-  description = "classifies a datacube after reducing dimension.",
-  categories = as.array("cubes"),
-  summary = "classifying using rf machine learning model",
-  parameters = list(
-    Parameter$new(
-      name = "data",
-      description = "A data cube.",
-      schema = list(
-        type = "object",
-        subtype = "raster-cube"
-      )
-    ),
-    Parameter$new(
-      name = "model",
-      description = "machine learning model",
-      schema = list(
-        type = "object",
-      )
-    )    
-  ),
-  returns=eo_datacube,
-  # datacube : datacube used for classification
-  # model    : trained machine learning model used for classification
-  # job      : 
+# cube_classify_1 <- Process$new(
+#   id = "cube_classify_1",
+#   description = "classifies a datacube after reducing dimension.",
+#   categories = as.array("cubes"),
+#   summary = "classifying using rf machine learning model",
+#   parameters = list(
+#     Parameter$new(
+#       name = "data",
+#       description = "A data cube.",
+#       schema = list(
+#         type = "object",
+#         subtype = "raster-cube"
+#       )
+#     ),
+#     Parameter$new(
+#       name = "model",
+#       description = "machine learning model",
+#       schema = list(
+#         type = "object",
+#       )
+#     )    
+#   ),
+#   returns=eo_datacube,
+#   # datacube : datacube used for classification
+#   # model    : trained machine learning model used for classification
+#   # job      : 
 
-  operation= function(data,model,aoi,crs,job){
-    #reduce dimension erwartet Funktion 
-    #data cube vorher reduced : muss hier nicht mehr getan werden
+#   operation= function(data,model,aoi,crs,job){
+#     #reduce dimension erwartet Funktion 
+#     #data cube vorher reduced : muss hier nicht mehr getan werden
 
-    tryCatch({
-      rfPredict <- predict(model,data)
+#     tryCatch({
+#       rfPredict <- predict(model,data)
 
-    },
-    error = function(err)
-    {
-      message(toString(err))
-      message("Error in predicting ")
-    })
+#     },
+#     error = function(err)
+#     {
+#       message(toString(err))
+#       message("Error in predicting ")
+#     })
     
 
-    return(rfPredict)
-  }
-
-)
+#     return(rfPredict)
+#   }
+# )
 
 #' filter_spatial
 filter_spatial <- Process$new(
